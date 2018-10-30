@@ -22,7 +22,7 @@
     }
 
     #layerToggle {
-      top: 100px;
+      top: 150px;
       right: 20px;
       position: absolute;
       z-index: 99;
@@ -48,10 +48,11 @@
     require([
         "esri/Map",
         "esri/views/SceneView",
-        "esri/layers/TileLayer"
+        "esri/layers/TileLayer",
+        "esri/widgets/Search"
       ],
       function(
-        Map, SceneView, TileLayer
+        Map, SceneView, TileLayer, Search
       ) {
 
         /*****************************************************************
@@ -120,6 +121,18 @@
           });
         });
 
+        var searchWidget = new Search({
+          view: view
+        });
+
+        // Add the search widget to the top right corner of the view
+        view.ui.add(searchWidget, {
+          position: "top-right"
+        });
+
+        //Use this variable for changing search input.
+        var searchInput = document.getElementsByClassName("esri-input esri-search__input");
+
         var baseMapToggle = document.getElementById("baseMap");
 
         var streetsLayerToggle = document.getElementById("streetsLayer");
@@ -144,6 +157,14 @@
               console.log("base map changed!");
            }
         });
+
+        var NewYorkbutton = document.getElementById("NewYork");
+
+        NewYorkbutton.addEventListener("click", function() {
+
+          console.log("attempted to change location!", searchInput);
+        });
+
       });
   </script>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -154,23 +175,23 @@
 <body>
 
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Map Me</a>
+    <a class="navbar-brand" href="#">Quick Links:</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
       <ul class="navbar-nav">
         <li class="nav-item active">
-          <a class="nav-link" href="#">New York<span class="sr-only">(current)</span></a>
+          <button type="button" class="btn btn-light" id="NewYork">New York</button>
         </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Los Angeles<span class="sr-only">(current)</span></a>
+        <li class="nav-item active" id="LosAngeles">
+          <button type="button" class="btn btn-light" id="LosAngeles">Los Angeles</button>
         </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Paris<span class="sr-only">(current)</span></a>
+        <li class="nav-item active" id="Paris">
+          <button type="button" class="btn btn-light" id="Paris">Paris</button>
         </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Tokyo<span class="sr-only">(current)</span></a>
+        <li class="nav-item active" id="Tokyo">
+          <button type="button" class="btn btn-light" id="Tokyo">Tokyo</button>
         </li>
 
       </ul>
