@@ -31,6 +31,17 @@
       padding: 10px;
       opacity: 0.75;
     }
+
+    #baseMapToggle {
+      top: 300px;
+      right: 20px;
+      position: absolute;
+      z-index: 99;
+      background-color: white;
+      border-radius: 8px;
+      padding: 10px;
+      opacity: 0.75;
+    }
   </style>
 
   <script>
@@ -109,6 +120,8 @@
           });
         });
 
+        var baseMapToggle = document.getElementById("baseMap");
+
         var streetsLayerToggle = document.getElementById("streetsLayer");
 
         /*****************************************************************
@@ -119,6 +132,17 @@
          *******************************************************************/
         streetsLayerToggle.addEventListener("change", function () {
           transportationLayer.visible = streetsLayerToggle.checked;
+        });
+
+        baseMapToggle.addEventListener("change", function () {
+           if (baseMapToggle.checked) {
+              map.basemap = "streets";
+              console.log("base map changed!");
+           }
+           if (!baseMapToggle.checked) {
+              map.basemap = "oceans";
+              console.log("base map changed!");
+           }
         });
       });
   </script>
@@ -162,6 +186,10 @@
   <span id="layerToggle">
     <h3>Layers:</h3>
     <input type="checkbox" id="streetsLayer"> Transportation
+  </span>
+  <span id="baseMapToggle">
+    <h3>Base Map:</h3>
+    <input type="checkbox" id="baseMap"> streets
   </span>
 </body>
 
