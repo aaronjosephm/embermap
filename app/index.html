@@ -133,6 +133,8 @@
         //Use this variable for changing search input.
         var searchInput = document.getElementsByClassName("esri-input esri-search__input");
 
+        var searchButton = document.getElementsByClassName("esri-search__submit-button esri-widget--button");
+
         var baseMapToggle = document.getElementById("baseMap");
 
         var streetsLayerToggle = document.getElementById("streetsLayer");
@@ -161,7 +163,8 @@
         var NewYorkbutton = document.getElementById("NewYork");
 
         NewYorkbutton.addEventListener("click", function() {
-
+          searchInput[0].value = "New York";
+          searchButton[0].click()
           console.log("attempted to change location!", searchInput);
         });
 
@@ -179,8 +182,8 @@
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarNavDropdown">
-      <ul class="navbar-nav">
+    <div class="navbar-collapse collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
         <li class="nav-item active">
           <a><button type="button" class="btn btn-light" id="NewYork">New York</button></a>
         </li>
@@ -193,7 +196,6 @@
         <li class="nav-item active" id="Tokyo">
           <a><button type="button" class="btn btn-light" id="Tokyo">Tokyo</button></a>
         </li>
-
       </ul>
     </div>
   </nav>
