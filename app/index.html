@@ -162,8 +162,32 @@
 
         var NewYorkbutton = document.getElementById("NewYork");
 
+        var LosAngelesbutton = document.getElementById("LosAngeles");
+
+        var Parisbutton = document.getElementById("Paris");
+
+        var Tokyobutton = document.getElementById("Tokyo");
+
         NewYorkbutton.addEventListener("click", function() {
           searchInput[0].value = "New York";
+          searchButton[0].click()
+          console.log("attempted to change location!", searchInput);
+        });
+
+        LosAngelesbutton.addEventListener("click", function() {
+          searchInput[0].value = "Los Angeles";
+          searchButton[0].click()
+          console.log("attempted to change location!", searchInput);
+        });
+
+        Parisbutton.addEventListener("click", function() {
+          searchInput[0].value = "Paris";
+          searchButton[0].click()
+          console.log("attempted to change location!", searchInput);
+        });
+
+        Tokyobutton.addEventListener("click", function() {
+          searchInput[0].value = "Tokyo";
           searchButton[0].click()
           console.log("attempted to change location!", searchInput);
         });
