@@ -1,25 +1,168 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Embermap</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Intro to layers - 4.9</title>
 
-    {{content-for "head"}}
+  <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.9/"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
-    <link integrity="" rel="stylesheet" href="{{rootURL}}assets/vendor.css">
-    <link integrity="" rel="stylesheet" href="{{rootURL}}assets/embermap.css">
 
-    {{content-for "head-footer"}}
-  </head>
-  <body>
-    {{content-for "body"}}
 
-    <script src="{{rootURL}}assets/vendor.js"></script>
-    <script src="{{rootURL}}assets/embermap.js"></script>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 90%;
+      width: 100%;
+    }
 
-    {{content-for "body-footer"}}
-  </body>
+    #layerToggle {
+      top: 100px;
+      right: 20px;
+      position: absolute;
+      z-index: 99;
+      background-color: white;
+      border-radius: 8px;
+      padding: 10px;
+      opacity: 0.75;
+    }
+  </style>
+
+  <script>
+    require([
+        "esri/Map",
+        "esri/views/SceneView",
+        "esri/layers/TileLayer"
+      ],
+      function(
+        Map, SceneView, TileLayer
+      ) {
+
+        /*****************************************************************
+         * Create two TileLayer instances. One pointing to a
+         * cached map service depicting U.S. male population and the other
+         * pointing to a layer of roads and highways.
+         *****************************************************************/
+        var transportationLayer = new TileLayer({
+          url: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer",
+          // This property can be used to uniquely identify the layer
+          id: "streets",
+          visible: false
+        });
+
+        var housingLayer = new TileLayer({
+          url: "https://tiles.arcgis.com/tiles/nGt4QxSblgDfeJn9/arcgis/rest/services/New_York_Housing_Density/MapServer",
+          id: "ny-housing",
+          opacity: 0.9
+        });
+
+        /*****************************************************************
+         * Layers may be added to the map in the map's constructor
+         *****************************************************************/
+        var map = new Map({
+          basemap: "oceans",
+          layers: [housingLayer, transportationLayer]
+        });
+
+        /*****************************************************************
+         * Or they may be added to the map using map.add()
+         *****************************************************************/
+        // map.add(transportationLayer);
+
+        var view = new SceneView({
+          container: "viewDiv",
+          map: map
+        });
+
+        view.zoom = 6;
+        view.center = [ -100, 40 ];
+
+        /*****************************************************************
+         * The map handles the layers' data while the view and layer views
+         * take care of renderering the layers
+         *****************************************************************/
+        view.on("layerview-create", function(event) {
+          if (event.layer.id === "ny-housing") {
+            // Explore the properties of the population layer's layer view here
+            console.log("LayerView for male population created!", event.layerView);
+          }
+          if (event.layer.id === "streets") {
+            // Explore the properties of the transportation layer's layer view here
+            // Explore the properties of the transportation layer's layer view here
+            console.log("LayerView for streets created!", event.layerView);
+          }
+        });
+
+        /*****************************************************************
+         * Layers are promises that resolve when loaded, or when all their
+         * properties may be accessed. Once the population layer has loaded,
+         * the view will animate to it's initial extent.
+         *****************************************************************/
+        view.when(function() {
+          housingLayer.when(function() {
+            view.goTo(housingLayer.fullExtent);
+          });
+        });
+
+        var streetsLayerToggle = document.getElementById("streetsLayer");
+
+        /*****************************************************************
+         * The visible property on the layer can be used to toggle the
+         * layer's visibility in the view. When the visibility is turned off
+         * the layer is still part of the map, which means you can access
+         * its properties and perform analysis even though it isn't visible.
+         *******************************************************************/
+        streetsLayerToggle.addEventListener("change", function () {
+          transportationLayer.visible = streetsLayerToggle.checked;
+        });
+      });
+  </script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Navbar</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Features</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Pricing</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Dropdown link
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a class="dropdown-item" href="#">Action</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <a class="dropdown-item" href="#">Something else here</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <div id="viewDiv"></div>
+  <span id="layerToggle">
+    <h3>Layers:</h3>
+    <input type="checkbox" id="streetsLayer"> Transportation
+  </span>
+</body>
+
 </html>
