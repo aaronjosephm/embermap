@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Intro to layers - 4.9</title>
+  <title>Button map</title>
 
   <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
   <script src="https://js.arcgis.com/4.9/"></script>
@@ -160,37 +160,49 @@
            }
         });
 
-        var NewYorkbutton = document.getElementById("NewYork");
+        // var NewYorkbutton = document.getElementById("NewYork");
 
-        var LosAngelesbutton = document.getElementById("LosAngeles");
+        // var LosAngelesbutton = document.getElementById("LosAngeles");
 
-        var Parisbutton = document.getElementById("Paris");
+        // var Parisbutton = document.getElementById("Paris");
 
-        var Tokyobutton = document.getElementById("Tokyo");
+        // var Tokyobutton = document.getElementById("Tokyo");
 
-        NewYorkbutton.addEventListener("click", function() {
-          searchInput[0].value = "New York";
-          searchButton[0].click()
-          console.log("attempted to change location!", searchInput);
-        });
+        // NewYorkbutton.addEventListener("click", function() {
+        //   searchInput[0].isContentEditable = true
 
-        LosAngelesbutton.addEventListener("click", function() {
-          searchInput[0].value = "Los Angeles";
-          searchButton[0].click()
-          console.log("attempted to change location!", searchInput);
-        });
+        //   searchInput[0].value = "New York";
+        //   searchButton[0].click();
+        //   console.log("attempted to change location!", searchInput);
+        // });
 
-        Parisbutton.addEventListener("click", function() {
-          searchInput[0].value = "Paris";
-          searchButton[0].click()
-          console.log("attempted to change location!", searchInput);
-        });
+        // LosAngelesbutton.addEventListener("click", function() {
+        //   searchInput[0].value = "Los Angeles";
+        //   searchButton[0].click();
+        //   console.log("attempted to change location!", searchInput);
+        // });
 
-        Tokyobutton.addEventListener("click", function() {
-          searchInput[0].value = "Tokyo";
-          searchButton[0].click()
-          console.log("attempted to change location!", searchInput);
-        });
+        // Parisbutton.addEventListener("click", function() {
+        //   searchInput[0].value = "Paris, Île-de-France, FRA";
+        //   searchButton[0].click();
+        //   console.log("attempted to change location!", searchInput);
+        // });
+
+        // Tokyobutton.addEventListener("click", function() {
+        //   searchInput[0].value = "Tokyo";
+        //   searchButton[0].click();
+        //   console.log("attempted to change location!", searchInput);
+        // });
+
+        // Tokyobutton.on("click", function() {
+        //   esriRequest(url, options).then(function(response) {
+        //     // do something useful
+        //     searchInput[0].value = "Tokyo";
+        //     searchButton[0].click();
+        //   }).catch(function(error){
+        //     console.log("informative error message: ", error);
+        //   });
+        // });
 
       });
   </script>
@@ -201,7 +213,7 @@
 
 <body>
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+ <!--  <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="#">Quick Links:</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -222,8 +234,10 @@
         </li>
       </ul>
     </div>
-  </nav>
-  <div id="viewDiv"></div>
+  </nav> -->
+  <div id="viewDiv">
+
+  </div>
   <span id="layerToggle">
     <h3>Layers:</h3>
     <input type="checkbox" id="streetsLayer"> Transportation
