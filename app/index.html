@@ -41,11 +41,34 @@
       "esri/views/SceneView",
       "esri/layers/GraphicsLayer",
       "esri/tasks/QueryTask",
-      "esri/tasks/support/Query"
+      "esri/tasks/support/Query",
+      "esri/widgets/Locate"
     ], function(
       Map, SceneView, GraphicsLayer,
-      QueryTask, Query
+      QueryTask, Query, Locate
     ) {
+
+      console.oldLog = console.log;
+
+      console.log = function(value)
+      {
+          console.oldLog(value);
+          window.$log = value;
+      };
+
+
+
+      function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+            console.log("This browser does not support geolocation");
+        }
+      }
+
+      function showPosition(position) {
+          console.log(position.coords.latitude + "," + position.coords.longitude);
+      }
 
       // URL to feature service containing points representing the 50
       // most prominent peaks in the U.S.
@@ -122,7 +145,11 @@
         view.ui.add("optionsDiv", "bottom-right");
         document.getElementById("doBtn").addEventListener("click",
           doQuery);
+        document.getElementById("closest").addEventListener("click",
+          findClosest);
       });
+
+      var LocateButton = document.getElementsByClassName("esri-component esri-locate esri-widget--button esri-widget");
 
       var attributeCity = document.getElementById("attSelect");
 
@@ -152,6 +179,7 @@
         console.log(attributeCity.value)
         console.log(params.where)
         console.log('$value.value')
+        console.log(view.lat)
 
 
         // executes the query and calls getResults() once the promise is resolved
@@ -159,6 +187,26 @@
         qTask.execute(params)
           .then(getResults)
           .catch(promiseRejected);
+      }
+
+      function findClosest() {
+        //use google geocoder to find current city
+
+        //Clear previous results on map
+        resultsLayer.removeAll();
+
+        //Go to current location
+        LocateButton[0].click()
+
+        //Print out coordinates for debuggin purposes
+
+        getLocation();
+
+        setTimeout(function () {
+          var temp = $log;
+          console.log("this is log: " + temp);
+        }, 5000);
+
       }
 
       // Called each time the promise is resolved
@@ -210,6 +258,15 @@
       function promiseRejected(error) {
         console.error("Promise rejected: ", error.message);
       }
+
+      var locateBtn = new Locate({
+        view: view
+      });
+
+      // Add the locate widget to the top left corner of the view
+      view.ui.add(locateBtn, {
+        position: "top-left"
+      });
     });
   </script>
 </head>
@@ -235,6 +292,8 @@
     <br>
     <button class="esri-widget" id="doBtn">Do Query</button>
     <br>
+    <br>
+    <button class="esri-widget" id="closest">Find closest Starbucks to me</button>
     <p><span id="printResults"></span></p>
   </div>
 </body>
