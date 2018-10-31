@@ -3,13 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Button map</title>
-
-  <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
-  <script src="https://js.arcgis.com/4.9/"></script>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
-
+  <title>QueryTask - 4.9</title>
 
   <style>
     html,
@@ -21,231 +15,227 @@
       width: 100%;
     }
 
-    #layerToggle {
-      top: 150px;
-      right: 20px;
-      position: absolute;
-      z-index: 99;
-      background-color: white;
-      border-radius: 8px;
+    #optionsDiv {
+      background-color: dimgray;
+      color: white;
       padding: 10px;
-      opacity: 0.75;
+      width: 350px;
     }
 
-    #baseMapToggle {
-      top: 300px;
-      right: 20px;
-      position: absolute;
-      z-index: 99;
-      background-color: white;
-      border-radius: 8px;
-      padding: 10px;
-      opacity: 0.75;
+    .esri-popup .esri-popup-header .esri-title {
+      font-size: 18px;
+      font-weight: bolder;
+    }
+
+    .esri-popup .esri-popup-body .esri-popup-content {
+      font-size: 14px;
     }
   </style>
 
+  <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.9/"></script>
+
   <script>
     require([
-        "esri/Map",
-        "esri/views/SceneView",
-        "esri/layers/TileLayer",
-        "esri/widgets/Search"
-      ],
-      function(
-        Map, SceneView, TileLayer, Search
-      ) {
+      "esri/Map",
+      "esri/views/SceneView",
+      "esri/layers/GraphicsLayer",
+      "esri/tasks/QueryTask",
+      "esri/tasks/support/Query"
+    ], function(
+      Map, SceneView, GraphicsLayer,
+      QueryTask, Query
+    ) {
 
-        /*****************************************************************
-         * Create two TileLayer instances. One pointing to a
-         * cached map service depicting U.S. male population and the other
-         * pointing to a layer of roads and highways.
-         *****************************************************************/
-        var transportationLayer = new TileLayer({
-          url: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer",
-          // This property can be used to uniquely identify the layer
-          id: "streets",
-          visible: false
-        });
+      // URL to feature service containing points representing the 50
+      // most prominent peaks in the U.S.
+      var peaksUrl =
+        "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/Starbucks_Locations/FeatureServer/0";
 
-        var housingLayer = new TileLayer({
-          url: "https://tiles.arcgis.com/tiles/nGt4QxSblgDfeJn9/arcgis/rest/services/Los_Angeles_Open_Space/MapServer",
-          id: "ny-housing",
-          opacity: 0.9
-        });
-
-        /*****************************************************************
-         * Layers may be added to the map in the map's constructor
-         *****************************************************************/
-        var map = new Map({
-          basemap: "oceans",
-          layers: [housingLayer, transportationLayer]
-        });
-
-        /*****************************************************************
-         * Or they may be added to the map using map.add()
-         *****************************************************************/
-        // map.add(transportationLayer);
-
-        var view = new SceneView({
-          container: "viewDiv",
-          map: map
-        });
-
-        view.zoom = 6;
-        view.center = [ -100, 40 ];
-
-        /*****************************************************************
-         * The map handles the layers' data while the view and layer views
-         * take care of renderering the layers
-         *****************************************************************/
-        view.on("layerview-create", function(event) {
-          if (event.layer.id === "ny-housing") {
-            // Explore the properties of the population layer's layer view here
-            console.log("LayerView for male population created!", event.layerView);
+      // Define the popup content for each result
+      var popupTemplate = { // autocasts as new PopupTemplate()
+        title: "Starbucks Store ID: {Store_ID}",
+        fieldInfos: [{
+          fieldName: "Store ID",
+          label: "Store ID",
+          format: {
+            places: 0,
+            digitSeperator: true
           }
-          if (event.layer.id === "streets") {
-            // Explore the properties of the transportation layer's layer view here
-            // Explore the properties of the transportation layer's layer view here
-            console.log("LayerView for streets created!", event.layerView);
+        }],
+        content: "<b>City:</b> {City}<br>" +
+        "<b>Store ID:</b> {Store_ID}<br>" +
+        "<b>Latitude:</b> {Latitude}<br>" +
+        "<b>Longitude:</b> {Longitude}"
+      };
+
+      var mtnSymbol = {
+        type: "point-3d", // autocasts as new PointSymbol3D()
+        symbolLayers: [{
+          type: "object", // autocasts as new ObjectSymbol3DLayer()
+          resource: {
+            primitive: "cube"
           }
+        }]
+      };
+
+      // Create graphics layer and symbol to use for displaying the results of query
+      var resultsLayer = new GraphicsLayer();
+
+      /*****************************************************************
+       *  Point QueryTask to URL of feature service
+       *****************************************************************/
+      var qTask = new QueryTask({
+        url: peaksUrl
+      });
+
+      /******************************************************************
+       * Set the query parameters to always return geometry and all fields.
+       * Returning geometry allows us to display results on the map/view
+       ******************************************************************/
+      var params = new Query({
+        returnGeometry: true,
+        outFields: ["*"]
+      });
+
+      var map = new Map({
+        basemap: "osm",
+        layers: [resultsLayer] // add graphics layer to the map
+      });
+
+      var view = new SceneView({
+        map: map,
+        container: "viewDiv",
+        center: [-100, 38],
+        zoom: 4,
+        popup: {
+          dockEnabled: true,
+          dockOptions: {
+            position: "top-right",
+            breakpoint: false
+          }
+        }
+      });
+
+      // Call doQuery() each time the button is clicked
+      view.when(function() {
+        view.ui.add("optionsDiv", "bottom-right");
+        document.getElementById("doBtn").addEventListener("click",
+          doQuery);
+      });
+
+      var attributeCity = document.getElementById("attSelect");
+
+      var value = document.getElementById("valSelect");
+
+      // Executes each time the button is clicked
+      function doQuery() {
+        // Clear the results from a previous query
+        resultsLayer.removeAll();
+        /*********************************************
+         *
+         * Set the where clause for the query. This can be any valid SQL expression.
+         * In this case the inputs from the three drop down menus are used to build
+         * the query. For example, if "Elevation", "is greater than", and "10,000 ft"
+         * are selected, then the following SQL where clause is built here:
+         *
+         * params.where = "ELEV_ft > 10000";
+         *
+         * ELEV_ft is the field name for Elevation and is assigned to the value of the
+         * select option in the HTML below. Other operators such as AND, OR, LIKE, etc
+         * may also be used here.
+         *
+         **********************************************/
+        params.where = attributeCity.value + "='" + `${value.value}` + "'";
+
+
+        console.log(attributeCity.value)
+        console.log(params.where)
+        console.log('$value.value')
+
+
+        // executes the query and calls getResults() once the promise is resolved
+        // promiseRejected() is called if the promise is rejected
+        qTask.execute(params)
+          .then(getResults)
+          .catch(promiseRejected);
+      }
+
+      // Called each time the promise is resolved
+      function getResults(response) {
+
+        // Loop through each of the results and assign a symbol and PopupTemplate
+        // to each so they may be visualized on the map
+        var peakResults = response.features.map(function(
+          feature) {
+
+          // Sets the symbol of each resulting feature to a cone with a
+          // fixed color and width. The height is based on the mountain's elevation
+          feature.symbol = {
+            type: "point-3d", // autocasts as new PointSymbol3D()
+            symbolLayers: [{
+              type: "object", // autocasts as new ObjectSymbol3DLayer()
+              material: {
+                color: "green"
+              },
+              resource: {
+                primitive: "cone"
+              },
+              width: 500,
+              height: 10
+            }]
+          };
+
+          feature.popupTemplate = popupTemplate;
+          return feature;
         });
 
-        /*****************************************************************
-         * Layers are promises that resolve when loaded, or when all their
-         * properties may be accessed. Once the population layer has loaded,
-         * the view will animate to it's initial extent.
-         *****************************************************************/
-        view.when(function() {
-          housingLayer.when(function() {
-            view.goTo(housingLayer.fullExtent);
+        resultsLayer.addMany(peakResults);
+
+        // animate to the results after they are added to the map
+        view.goTo(peakResults).then(function() {
+          view.popup.open({
+            features: peakResults,
+            featureMenuOpen: true,
+            updateLocationEnabled: true
           });
         });
 
-        var searchWidget = new Search({
-          view: view
-        });
+        // print the number of results returned to the user
+        document.getElementById("printResults").innerHTML = peakResults.length +
+          " results found!";
+      }
 
-        // Add the search widget to the top right corner of the view
-        view.ui.add(searchWidget, {
-          position: "top-right"
-        });
-
-        //Use this variable for changing search input.
-        var searchInput = document.getElementsByClassName("esri-input esri-search__input");
-
-        var searchButton = document.getElementsByClassName("esri-search__submit-button esri-widget--button");
-
-        var baseMapToggle = document.getElementById("baseMap");
-
-        var streetsLayerToggle = document.getElementById("streetsLayer");
-
-        /*****************************************************************
-         * The visible property on the layer can be used to toggle the
-         * layer's visibility in the view. When the visibility is turned off
-         * the layer is still part of the map, which means you can access
-         * its properties and perform analysis even though it isn't visible.
-         *******************************************************************/
-        streetsLayerToggle.addEventListener("change", function () {
-          transportationLayer.visible = streetsLayerToggle.checked;
-        });
-
-        baseMapToggle.addEventListener("change", function () {
-           if (baseMapToggle.checked) {
-              map.basemap = "streets";
-              console.log("base map changed!");
-           }
-           if (!baseMapToggle.checked) {
-              map.basemap = "oceans";
-              console.log("base map changed!");
-           }
-        });
-
-        // var NewYorkbutton = document.getElementById("NewYork");
-
-        // var LosAngelesbutton = document.getElementById("LosAngeles");
-
-        // var Parisbutton = document.getElementById("Paris");
-
-        // var Tokyobutton = document.getElementById("Tokyo");
-
-        // NewYorkbutton.addEventListener("click", function() {
-        //   searchInput[0].isContentEditable = true
-
-        //   searchInput[0].value = "New York";
-        //   searchButton[0].click();
-        //   console.log("attempted to change location!", searchInput);
-        // });
-
-        // LosAngelesbutton.addEventListener("click", function() {
-        //   searchInput[0].value = "Los Angeles";
-        //   searchButton[0].click();
-        //   console.log("attempted to change location!", searchInput);
-        // });
-
-        // Parisbutton.addEventListener("click", function() {
-        //   searchInput[0].value = "Paris, Île-de-France, FRA";
-        //   searchButton[0].click();
-        //   console.log("attempted to change location!", searchInput);
-        // });
-
-        // Tokyobutton.addEventListener("click", function() {
-        //   searchInput[0].value = "Tokyo";
-        //   searchButton[0].click();
-        //   console.log("attempted to change location!", searchInput);
-        // });
-
-        // Tokyobutton.on("click", function() {
-        //   esriRequest(url, options).then(function(response) {
-        //     // do something useful
-        //     searchInput[0].value = "Tokyo";
-        //     searchButton[0].click();
-        //   }).catch(function(error){
-        //     console.log("informative error message: ", error);
-        //   });
-        // });
-
-      });
+      // Called each time the promise is rejected
+      function promiseRejected(error) {
+        console.error("Promise rejected: ", error.message);
+      }
+    });
   </script>
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 </head>
 
 <body>
-
- <!--  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Quick Links:</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="navbar-collapse collapse" id="navbarNavDropdown">
-      <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
-        <li class="nav-item active">
-          <a><button type="button" class="btn btn-light" id="NewYork">New York</button></a>
-        </li>
-        <li class="nav-item active" id="LosAngeles">
-          <a><button type="button" class="btn btn-light" id="LosAngeles">Los Angeles</button></a>
-        </li>
-        <li class="nav-item active" id="Paris">
-          <a><button type="button" class="btn btn-light" id="Paris">Paris</button></a>
-        </li>
-        <li class="nav-item active" id="Tokyo">
-          <a><button type="button" class="btn btn-light" id="Tokyo">Tokyo</button></a>
-        </li>
-      </ul>
-    </div>
-  </nav> -->
-  <div id="viewDiv">
-
+  <div id="viewDiv"></div>
+  <div class="esri-widget" id="optionsDiv">
+    <h2>Starbucks around the world:</h2>
+    <select class="esri-widget" id="attSelect">
+      <option value="City">City</option>
+    </select>
+    <select class="esri-widget" id="valSelect">
+      <option value="Kansas city">Kansas city</option>
+      <option value="Las Vegas">Las Vegas</option>
+      <option value="Los Angeles">Los Angeles</option>
+      <option value="New York">New York</option>
+      <option value="Jersey city">Jersey city</option>
+      <option value="Houston">Houston</option>
+      <option value="Nashville">Nashville</option>
+    </select>
+    <br>
+    <br>
+    <button class="esri-widget" id="doBtn">Do Query</button>
+    <br>
+    <p><span id="printResults"></span></p>
   </div>
-  <span id="layerToggle">
-    <h3>Layers:</h3>
-    <input type="checkbox" id="streetsLayer"> Transportation
-  </span>
-  <span id="baseMapToggle">
-    <h3>Base Map:</h3>
-    <input type="checkbox" id="baseMap"> streets
-  </span>
 </body>
 
 </html>
