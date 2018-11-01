@@ -205,6 +205,15 @@
         setTimeout(function () {
           var temp = $log;
           console.log("this is log: " + temp);
+          var latmin = temp.split(`,`)[0] - 3;
+          var latmax = temp.split(`,`)[0] + 3;
+          var longmin = temp.split(`,`)[1] - 3;
+          var longmax = temp.split(`,`)[1] + 3;
+          params.where = "Latitude>" + latmin + " AND " + "Latitude<" + latmax +  " AND " + "Longitude<" + longmax + " AND " + "Longitude>" + longmin;
+          qTask.execute(params)
+            .then(getResults)
+            .catch(promiseRejected);
+
         }, 5000);
 
       }
